@@ -3,7 +3,6 @@
 #include <vector>
 #include <algorithm>
 
-
 //ポイントクラス
 class Point
 {
@@ -185,15 +184,6 @@ public:
 	}
 };
 
-//cpp側に書いたらリンカエラーが消えた
-/*
-//ソート用関数
-bool asc(const Mass* o1, const Mass* o2)
-{
-	return o1->getCost() < o2->getCost();
-}
-*/
-
 class Board 
 {
 private:
@@ -254,7 +244,6 @@ public:
 	//デストラクタ？
 	~Board() {}
 
-
 	//そこが壁かどうか調べる
 	bool isValidated(const Point& p)
 	{
@@ -264,8 +253,6 @@ public:
 		}
 		return true;
 	}
-
-
 
 	//関数宣言？
 	bool find(const Point& start, const Point& goal);

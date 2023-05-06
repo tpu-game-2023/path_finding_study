@@ -1,5 +1,7 @@
 #include "board.h"
 
+//ソート用関数
+//ここに書かないとリンカエラーが取れなかった
 bool asc(const Mass* o1, const Mass* o2)
 {
 	return o1->getCost() < o2->getCost();
@@ -115,5 +117,4 @@ void Board::show() const
 		std::cout << "+-";
 	}
 	std::cout << "+" << std::endl;
-
 }
