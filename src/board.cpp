@@ -1,23 +1,76 @@
 #include "board.h"
 
+//ソート用関数
+//ここに書かないとリンカエラーが取れなかった
+bool asc(const Mass* o1, const Mass* o2)
+{
+	return o1->getCost() < o2->getCost();
+}
+
+//経路探索をしてステータスを設定する
 bool Board::find(const Point& start, const Point& goal)
 {
-	mass_[start.y()][start.x()].setStatus(Mass::START);
-	mass_[goal.y()][goal.x()].setStatus(Mass::GOAL);
+	Mass& mass_start = getMass(start);
+	Mass& mass_goal = getMass(goal);
 
-	Point p = start;
-	while (p != goal) {
-		if (p != start) mass_[p.x()][p.y()].setStatus(Mass::WAYPOINT);
+	mass_start.setStatus(Mass::START);
+	mass_goal.setStatus(Mass::GOAL);
 
-		if (p.x() < goal.x()) { p.setX(p.x() + 1); continue; }
-		if (goal.x() < p.x()) { p.setX(p.x() - 1); continue; }
-		if (p.y() < goal.y()) { p.setY(p.y() + 1); continue; }
-		if (goal.y() < p.y()) { p.setY(p.y() - 1); continue; }
+	//オープンリストに開始ノード追加
+	open_list_.clear();
+	open_list_.push_back(&mass_start);
+
+	while (!open_list_.empty()) //オープンリストが空でない
+	{
+		//現在のノード＝最も安価なやつ
+		std::sort(open_list_.begin(), open_list_.end(), asc);
+		auto it = open_list_.begin();
+		Mass* current = *it;
+		if (current->getStatus() == Mass::GOAL)//目的地なら完成
+		{
+			Mass* p = current;//経路のステータスをMass::WAYPOINTにする
+			while (p)
+			{
+				if (p->getStatus() == Mass::BLANK)
+				{
+					p->setStatus(Mass::WAYPOINT);
+				}
+					p = p->getParent();
+			}
+			return true;
+		}
+		else
+		{
+			//現在のノードをクローズリストに移動
+			open_list_.erase(it);
+			current->setListed(Mass::CLOSE);
+			//現在のノードに隣接するノードをすべて調べる
+			const Point& pos = current->getPos();
+			Point next[4] = { pos.getRight(), pos.getLeft(), pos.getUp(), pos.getDown() };
+			for (auto& c : next) //隣接ノード
+			{
+				if (c.x() < 0 || BOARD_SIZE <= c.x()) continue; //マップ外ならスキップ
+				if (c.x() < 0 || BOARD_SIZE <= c.y()) continue; //マップ外ならスキップ
+
+				Mass& m = getMass(c);
+				if (!m.isListed(Mass::OPEN) && //オープンリストに含まれていない
+					!m.isListed(Mass::CLOSE) && //クローズドリストに含まれていない
+					 m.getStatus() != Mass::WALL) //壁ではない
+				{
+					//オープンリストに移してコスト計算
+					open_list_.push_back(&m);
+					m.setParent(current, goal);
+					m.setListed(Mass::OPEN);
+				}
+			}
+		}
 	}
 
+	//ゴールに到達しなかった
 	return false;
 }
 
+//マップ描画、変更不要
 void Board::show() const 
 {
 	std::cout << std::endl;
@@ -64,5 +117,4 @@ void Board::show() const
 		std::cout << "+-";
 	}
 	std::cout << "+" << std::endl;
-
 }
