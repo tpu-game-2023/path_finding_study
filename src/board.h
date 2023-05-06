@@ -63,7 +63,7 @@ public:
 		double dx = (double)p2.x() - (double)p1.x();
 		double dy = (double)p2.y() - (double)p1.y();
 		//三平方の定理
-		return sqrt(dx * dx + dy + dy);
+		return sqrt(dx * dx + dy * dy);
 	}
 };
 
@@ -205,6 +205,7 @@ public:
 			for (int x = 0; x < BOARD_SIZE; x++)
 			{
 				mass_[y][x].setStatus(Mass::BLANK);
+				mass_[y][x].setPos(x, y);
 			}
 		}
 		// 壁を設定
@@ -212,6 +213,7 @@ public:
 		mass_[4][5].setStatus(Mass::WALL);
 		mass_[5][5].setStatus(Mass::WALL);
 		mass_[6][5].setStatus(Mass::WALL);
+
 		// 水を設定
 		for (int y = 4; y <= 7; y++)
 		{
@@ -228,6 +230,7 @@ public:
 		mass_[6][1].setStatus(Mass::ROAD);
 		mass_[6][2].setStatus(Mass::ROAD);
 		mass_[6][3].setStatus(Mass::ROAD);
+
 	}
 	//デストラクタ？
 	~Board() {}
