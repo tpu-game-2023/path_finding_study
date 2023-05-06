@@ -26,6 +26,8 @@ private:
 	int steps_ = 0;
 	double estimate_ = 0.0;
 
+	static int getWalkCost(Mass& m) { status s = m.getStatus(); return (s == WATER) ? 3 : 1; }
+
 	void calcCost(const Point target) {
 		steps_ = (pParent_ ? pParent_->steps_ : 0) + 1;
 		estmate_ = Point::distance(pos_, target);
