@@ -42,6 +42,9 @@ private:
 		BOARD_SIZE = 10,
 	};
 	Mass mass_[BOARD_SIZE][BOARD_SIZE];
+	Mass& getMass(const Point p) {
+		return mass_[p.y()][p.x()];
+	}
 public:
 	Board() {
 		for (int y = 0; y < BOARD_SIZE; y++) {
@@ -70,8 +73,22 @@ public:
 		mass_[6][3].setStatus(Mass::ROAD);
 	}
 	~Board() {}
+	void addWall(const Point& p) {
+		getMass(p).setStatus(Mass::WALL);
+	}
 
-	bool find(const Point& start, const Point& goal);
+	bool isValidated(const Point& p) {
+		if (getMass(p).getStatus() == Mass::WALL) {
+			return false;
+		}
+		return true;
+	}
+
+	bool find(const Point& start, const Point& goal) {
+		getMass(start).setStatus(Mass::START);
+		getMass(goal).setStatus(Mass::GOAL);
+		return false;
+	}
 
 	void show() const;
 };
