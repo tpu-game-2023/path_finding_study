@@ -24,17 +24,35 @@ class Point {
 	int x_ = -1,
 		y_ = -1;
 public:
+	Point(){}
 	Point(int x, int y) :x_(x), y_(y) {}
 	int x() const { return x_; }
 	int y() const { return y_; }
 	void setX(int x) { x_ = x; }
 	void setY(int y) { y_ = y; }
+	void set(int x, int y) { x_ = x; y_ = y; }
 
 	bool operator == (const Point& p) const {
-		return p.x() == x_ && p.y() == y_;}
+		return p.x() == x_ && p.y() == y_;
+	}
 	bool operator != (const Point& p) const {
-		return !(p == *this);}
+		return !(p == *this);
+	}
+
+	Point getRight() const { return Point(x_ + 1, y_); }
+	Point getLeft () const { return Point(x_ - 1, y_); }
+	Point getUp   () const { return Point(x_, y_ - 1); }
+	Point getDown () const { return Point(x_, y_ + 1); }
+
+	static double distance(const Point p1, const Point p2) {
+		double dx = (double)p2.x() - (double)p1.x();
+		double dy = (double)p2.y() - (double)p1.y();
+	}
 };
+
+bool asc(const Mass* o1, const Mass* o2) {
+	return o1->getCost() < o2->getCost();
+}
 
 class Board {
 private:
