@@ -77,6 +77,7 @@ public:
 	static double distance(const Point p1, const Point p2) {
 		double dx = (double)p2.x() - (double)p1.x();
 		double dy = (double)p2.y() - (double)p1.y();
+		return sqrt(dx * dx + dy * dy);
 	}
 };
 
@@ -90,9 +91,9 @@ private:
 		BOARD_SIZE = 10,
 	};
 	Mass mass_[BOARD_SIZE][BOARD_SIZE];
-	Mass& getMass(const Point p) {
-		return mass_[p.y()][p.x()];
-	}
+	Mass& getMass(const Point p) { return mass_[p.y()][p.x()]; }
+
+	std::vector<Mass*> open_list_;
 public:
 	Board() {
 		for (int y = 0; y < BOARD_SIZE; y++) {
@@ -121,9 +122,7 @@ public:
 		mass_[6][3].setStatus(Mass::ROAD);
 	}
 	~Board() {}
-	void addWall(const Point& p) {
-		getMass(p).setStatus(Mass::WALL);
-	}
+	void addWall(const Point& p) {getMass(p).setStatus(Mass::WALL);	}
 
 	bool isValidated(const Point& p) {
 		if (getMass(p).getStatus() == Mass::WALL) {
