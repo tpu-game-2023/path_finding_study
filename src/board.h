@@ -96,14 +96,33 @@ private:
 	listed listed_ = NONE;
 	Point pos_;
 	Mass* pParent_ = nullptr;
-	int steps_ = 0;
+	double steps_ = 0;
 	double estimate_ = 0.0;
+
+	//地形コストの計算
+	double getWalkCost(Mass& m)
+	{
+		status s = m.getStatus();
+
+		switch (s)
+		{
+		case Mass::WATER:
+			return 3;
+			break;
+		case Mass::ROAD:
+			return 1 / 3;
+			break;
+		default:
+			return 1;
+			break;
+		}
+	}
 
 	//コストの計算
 	void calcCost(const Point target)
 	{
-		//親がいたらそのsteps_に、いなければ0に、プラス1
-		steps_ = (pParent_ ? pParent_->steps_ : 0) + 1;
+		//親がいたらそのsteps_に、いなければ0に、プラス地形効果（基準値は1）
+		steps_ = (pParent_ ? pParent_->steps_ : 0) + getWalkCost(*this);
 		//ゴールまでの距離
 		estimate_ = Point::distance(pos_, target);
 	}
@@ -161,8 +180,8 @@ public:
 
 	double getCost() const
 	{
-		//歩数とヒューリスティックコストを足してコストにする。ここに地形効果を加えれば課題完成か
-		return (double)steps_ + estimate_;
+		//歩数とヒューリスティックコストを足してコストにする。
+		return steps_ + estimate_;
 	}
 };
 
