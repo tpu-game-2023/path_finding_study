@@ -132,9 +132,42 @@ public:
 	}
 
 	bool find(const Point& start, const Point& goal) {
-		getMass(start).setStatus(Mass::START);
-		getMass(goal).setStatus(Mass::GOAL);
-		return false;
+		Mass& mass_start = getMass(start);
+		Mass& mass_goal = getMass(goal);
+
+		mass_start.setStatus(Mass::START);
+		mass_goal.setStatus(Mass::GOAL);
+
+		open_list_.clear();
+		open_list_.push_back(&mass_start);
+
+		while (!open_list_.empty()) {
+			std::sort(open_list_.begin(), open_list_.end(), asc);
+			auto it = open_list_.begin();
+			Mass* current = *it;
+			if (current->getStatus() == Mass::GOAL) {
+				Mass* p = current;
+				while (p) { if (p->getStatus() == Mass::BLANK) p->setStatus(Mass::WAYPOINT); p = p->getParent(); }
+				return true;
+			}else {
+				open_list_.erase(it);
+				current->setListed(Mass::CLOSE);
+				const Point& pos = current->getPos();
+				Point next[4] = { pos.getRight(),pos.getLeft(),pos.getUp(),pos.getDown() };
+				for (auto& c : next) {
+					if (c.x() < 0 || BOARD_SIZE <= c.x()) continue;
+					if (c.y() < 0 || BOARD_SIZE <= c.y()) continue;
+					Mass& m = getMass(c);
+					if (!m.isListed(Mass::OPEN) &&
+						!m.isListed(Mass::CLOSE) &&
+						m.getStatus() != Mass::WALL) {
+						open_list_.push_back(&m);
+						m.setParent(current, goal);
+						m.setListed(Mass::OPEN);
+					}
+				}
+			}
+		}
 	}
 
 	void show() const;
