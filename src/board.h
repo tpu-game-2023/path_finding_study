@@ -66,7 +66,7 @@ private:
 	double estimate_ = 0;
 	
 	//通る時のコストを追加する
-	static int getWalk(Mass m)
+	int AddCost(Mass m)
 	{
 		status s = m.getStatus();
 		int cost = 1;
@@ -81,13 +81,14 @@ private:
 			cost * 3;
 		}
 		return cost;
+
+		/*static int getWalkWater(Mass* m) { status s = m->getStatus(); return (s == WATER) ? 3 : 1; }
+	    static int getWalkRoad(Mass* m) { status s = m->getStatus(); return (s == ROAD) * 3 ; }*/
 	}
-	/*static int getWalkWater(Mass* m) { status s = m->getStatus(); return (s == WATER) ? 3 : 1; }
-	static int getWalkRoad(Mass* m) { status s = m->getStatus(); return (s == ROAD) * 3 ; }*/
 
 	void calcCost(const Point target)
 	{
-		steps_ = (pParent_ ? pParent_->steps_ : 0) + getWalk(*this);
+		steps_ = (pParent_ ? pParent_->steps_ : 0) + AddCost(*this);
 		estimate_ = Point::distance(pos_, target);
 	}
 	
