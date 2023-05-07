@@ -1,56 +1,6 @@
 ﻿#pragma once
 #include <iostream>
-
-
-class Mass {
-public:
-	enum status {
-		BLANK,
-		GOAL,
-		START,
-		WAYPOINT,
-		WALL, // 通れない
-		WATER,// 進むのが1/3に遅くなる
-		ROAD,//進むのが3倍速い
-	};
-	enum listed {
-		NONE,
-		OPEN,
-		CLOSE,
-	};
-private:
-	status s_ = BLANK;
-	listed listed_ = NONE;
-	Point pos_;
-	Mass* pParent_ = nullptr;
-	int steps_ = 0;
-	double estimate_ = 0.0;
-
-	static int getWalkCost(Mass& m) { status s = m.getStatus(); return (s == WATER) ? 3 : 1; }
-
-	void calcCost(const Point target) {
-		steps_ = (pParent_ ? pParent_->steps_ : 0) + 1;
-		estmate_ = Point::distance(pos_, target);
-	}
-public:
-	void setStatus(status s) { s_ = s; }
-	status getStatus() const { return s_; }
-
-	void setPos(int x, int y) {
-		pos_.set(x, y);
-	}
-	const Point& getPos() const { return pos_; }
-	int x() { return pos_.x(); }
-	int y() { return pos_.y(); }
-
-	void setParent(Mass* pParent, const Point& goal) { pParent_ = pParent; calcCost(goal); }
-	Mass* getParent() { return pParent_; }
-
-	void setListed(listed t) { listed_ = t; }
-	bool isListed(listed t)sonst { return listed_ == t; }
-
-	double getCost() const { return (double)steps_ * +estimate_; }
-};
+#include <vector>
 
 class Point {
 	int x_ = -1,
@@ -83,9 +33,65 @@ public:
 	}
 };
 
-bool asc(const Mass* o1, const Mass* o2) {
-	return o1->getCost() < o2->getCost();
-}
+class Mass {
+public:
+	enum status {
+		BLANK,
+		GOAL,
+		START,
+		WAYPOINT,
+		WALL, // 通れない
+		WATER,// 進むのが1/3に遅くなる
+		ROAD,//進むのが3倍速い
+	};
+	enum listed {
+		NONE,
+		OPEN,
+		CLOSE,
+	};
+private:
+	status s_ = BLANK;
+	listed listed_ = NONE;
+	Point pos_;
+	Mass* pParent_ = nullptr;
+	int steps_ = 0;
+	double estimate_ = 0.0;
+
+	static int addCost(Mass m) {
+		status s = m.getStatus();
+		int cost = 1;
+		if (s == WATER) {
+			cost /= 3;
+		}
+		if (s == ROAD) {
+			cost *= 3;
+		}
+		return cost;
+	}
+
+	void calcCost(const Point target) {
+		steps_ = (pParent_ ? pParent_->steps_ : 0) + addCost(*this);
+		estimate_ = Point::distance(pos_, target);
+	}
+public:
+	void setStatus(status s) { s_ = s; }
+	status getStatus() const { return s_; }
+
+	void setPos(int x, int y) {
+		pos_.set(x, y);
+	}
+	const Point& getPos() const { return pos_; }
+	int x() { return pos_.x(); }
+	int y() { return pos_.y(); }
+
+	void setParent(Mass* pParent, const Point& goal) { pParent_ = pParent; calcCost(goal); }
+	Mass* getParent() { return pParent_; }
+
+	void setListed(listed t) { listed_ = t; }
+	bool isListed(listed t)const { return listed_ == t; }
+
+	double getCost() const { return (double)steps_ * +estimate_; }
+};
 
 class Board {
 private:
@@ -101,6 +107,7 @@ public:
 		for (int y = 0; y < BOARD_SIZE; y++) {
 			for (int x = 0; x < BOARD_SIZE; x++) {
 				mass_[y][x].setStatus(Mass::BLANK);
+				mass_[y][x].setPos(x, y);
 			}
 		}
 		// 壁
@@ -124,7 +131,6 @@ public:
 		mass_[6][3].setStatus(Mass::ROAD);
 	}
 	~Board() {}
-	void addWall(const Point& p) {getMass(p).setStatus(Mass::WALL);	}
 
 	bool isValidated(const Point& p) {
 		if (getMass(p).getStatus() == Mass::WALL) {
@@ -133,44 +139,7 @@ public:
 		return true;
 	}
 
-	bool find(const Point& start, const Point& goal) {
-		Mass& mass_start = getMass(start);
-		Mass& mass_goal = getMass(goal);
-
-		mass_start.setStatus(Mass::START);
-		mass_goal.setStatus(Mass::GOAL);
-
-		open_list_.clear();
-		open_list_.push_back(&mass_start);
-
-		while (!open_list_.empty()) {
-			std::sort(open_list_.begin(), open_list_.end(), asc);
-			auto it = open_list_.begin();
-			Mass* current = *it;
-			if (current->getStatus() == Mass::GOAL) {
-				Mass* p = current;
-				while (p) { if (p->getStatus() == Mass::BLANK) p->setStatus(Mass::WAYPOINT); p = p->getParent(); }
-				return true;
-			}else {
-				open_list_.erase(it);
-				current->setListed(Mass::CLOSE);
-				const Point& pos = current->getPos();
-				Point next[4] = { pos.getRight(),pos.getLeft(),pos.getUp(),pos.getDown() };
-				for (auto& c : next) {
-					if (c.x() < 0 || BOARD_SIZE <= c.x()) continue;
-					if (c.y() < 0 || BOARD_SIZE <= c.y()) continue;
-					Mass& m = getMass(c);
-					if (!m.isListed(Mass::OPEN) &&
-						!m.isListed(Mass::CLOSE) &&
-						m.getStatus() != Mass::WALL) {
-						open_list_.push_back(&m);
-						m.setParent(current, goal);
-						m.setListed(Mass::OPEN);
-					}
-				}
-			}
-		}
-	}
+	bool find(const Point& start, const Point& goal);
 
 	void show() const;
 };
