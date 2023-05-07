@@ -66,7 +66,7 @@ private:
 	double estimate_ = 0;
 	
 	//通る時のコストを追加する
-	int AddCost(Mass m)
+	static int AddCost(Mass m)
 	{
 		status s = m.getStatus();
 		int cost = 1;
